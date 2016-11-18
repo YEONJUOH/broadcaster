@@ -1,0 +1,13 @@
+doctype html
+html(lang='en')
+    head
+        meta(charset='UTF-8')
+        title Title
+        script(src='https://code.jquery.com/jquery-1.10.2.js')
+    body
+        form(action='http://localhost:3000/broadcast', method='POST')
+            input#room_num1(type='text', name='b_key')
+            button#broadcast2(type='submit') 방송하기
+        form(action='http://localhost:3000/join', method='POST')
+            input#room_num2(type='text', name='b_key')
+            button#broadcast3(type='submit') 참여하기
