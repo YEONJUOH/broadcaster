@@ -2884,7 +2884,8 @@
 
         // send file/data or text message
         this.send = function(message, _channel) {
-            if (!(message instanceof ArrayBuffer || message instanceof DataView)) {
+            if (!(message instanceof ArrayBuffer || message instanceof DataView || message.content instanceof ArrayBuffer ||  message.content instanceof DataView )) {
+               console.log("send에 들어옴");
                 message = str2ab({
                     extra: connection.extra,
                     userid: connection.userid,

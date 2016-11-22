@@ -26,10 +26,12 @@ function WebRTC_Scalable_Broadcast(app) {
     ]);
 
     var listOfBroadcasts = {};
+    var listOfPrice={};
 
     io.on('connection', function(socket) {
         var currentUser;
         socket.on('join-broadcast', function(user) {
+
             currentUser = user;
 
             user.numberOfViewers = 0;
@@ -43,6 +45,7 @@ function WebRTC_Scalable_Broadcast(app) {
 
             var firstAvailableBroadcaster = getFirstAvailableBraodcater(user);
             if (firstAvailableBroadcaster) {
+                console.log("첫째 available");
                 listOfBroadcasts[user.broadcastid].broadcasters[firstAvailableBroadcaster.userid].numberOfViewers++;
                 socket.emit('join-broadcaster', firstAvailableBroadcaster, listOfBroadcasts[user.broadcastid].typeOfStreams);
 
@@ -62,6 +65,28 @@ function WebRTC_Scalable_Broadcast(app) {
             socket.broadcast.emit('message', message);
         });
 
+        //
+        socket.on("bid",function(data){
+
+
+
+            if(listOfPrice[data.broadcastid]){
+
+                if(parseInt(listOfPrice[data.broadcastid])<parseInt(data.price)){
+                    listOfPrice[data.broadcastid] = data.price;
+                    socket.emit('answer',"ok");
+                }else{
+                    socket.emit('answer',"no");
+                }
+            }else{
+                listOfPrice[data.broadcastid] = data.price;
+                socket.emit('answer',"ok");
+
+            }
+
+
+
+        })
 
 
 
@@ -73,6 +98,8 @@ function WebRTC_Scalable_Broadcast(app) {
             delete listOfBroadcasts[currentUser.broadcastid].broadcasters[currentUser.userid];
             if (currentUser.isInitiator) {
                 delete listOfBroadcasts[currentUser.broadcastid];
+                if(listOfPrice[currentUser.broadcastid])
+                delete listOfPrice[currentUser.broadcastid];
             }
         });
     });

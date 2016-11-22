@@ -10,7 +10,20 @@ html(lang='en')
             html,body{
                 height: 100%;
             }
+            .context{
+                background-color: #ffffff;
+                padding:4px;
+                font-size: 15px;
+                border-radius:8px;
+            }
+            .con_div{
+                margin-top: 7px;
+                margin-left: 5px;
+                font-size :10px;
+            }
         link(rel='stylesheet', type='text/css', href='/stylesheets/bootstrap.min.css')
+        script(src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js')
+        script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js')
     body
         .bs-component
             nav.navbar.navbar-default
@@ -30,18 +43,30 @@ html(lang='en')
                         div
                             span 상품명
                             span 최저 입찰가
-                        input#broadcast-id(type='hidden', placeholder='broadcast-id', value='undefined')
+                        input#broadcast-id(type='hidden', placeholder='broadcast-id', value='#{key}')
                 div(style='width:30%;height100%;float:left;')
                     div(style='width:95%;height:600px;margin:0 auto;background:#ffffff;padding-top:5px;')
                         h4(style='width:95%;margin:0 auto;background:#666666;color:#ffffff;text-align:center;padding:4px;') 입찰 희망
-                        div(style='text-align:center;width:95%;margin:10px auto;border-bottom:1px solid') 입찰 희망 내역이 없습니다.
+                        div#highPrice(style='text-align:center;width:95%;margin:10px auto;border-bottom:1px solid') 입찰 희망 내역이 없습니다.
                         .chat-output(style='width:95%;margin:10px auto;height:450px;background:#d9d9d9')
                         div(style='width:95%;margin:0 auto;')
                             button(style='float:right') 입력
                             .stretcher(style='overflow:hidden')
                                 input#input-text-chat(type='text', style='width:100%')
                         div(style='width:95%;margin:5px auto;')
-                            button(style='width:100%;') 입찰하기
+                            button(type='button', data-toggle='modal', data-target='#bidModal', style='width:100%;') 입찰하기
+        // Modal
+        #bidModal.modal.fade(role='dialog')
+            .modal-dialog
+                // Modal content
+                .modal-content
+                    .modal-header
+                        button.close(type='button', data-dismiss='modal') ×
+                        h4.modal-title 입찰 하기
+                    .modal-body
+                        input#price(type='text',class="form-control" , style='width:50%;margin-left:25%')
+                    .modal-footer(style="text-align:center")
+                        button#bidding-button(type='button',class="btn btn-default" ,data-dismiss='modal') 입찰하기
     script(src='/socket.io/socket.io.js')
     script(src='/javascripts/RTCMultiConnection.js')
     script.
@@ -58,29 +83,70 @@ html(lang='en')
             OfferToReceiveAudio: false,
             OfferToReceiveVideo: false
         };
-        chatConnection.onmessage = appendDIV;
+        chatConnection.onmessage = chatOnMsg;
         document.getElementById('input-text-chat').onkeyup = function(e) {
             if (e.keyCode != 13) return;
             // removing trailing/leading whitespace
-            this.value = this.value.replace(/^\\s+|\s+$/g, '');
+            this.value = this.value.replace(/^\\\s+|\s+$/g, '');
             if (!this.value.length) return;
-            chatConnection.send(this.value);
+            chatConnection.send({type:"chat",content : this.value});
             appendDIV(this.value);
             this.value = '';
         };
         var chatContainer = document.querySelector('.chat-output');
         function appendDIV(event) {
-            var div = document.createElement('div');
-            div.innerHTML = event.data || event;
-            chatContainer.insertBefore(div, chatContainer.firstChild);
-            div.tabIndex = 0;
-            div.focus();
+            var att1 = document.createAttribute("class");// Create a "class" attribute
+            var att2 = document.createAttribute("class");// Create a "class" attribute
+            var div_con = document.createElement('div');
+            att1.value ="con_div";
+            div_con.setAttributeNode(att1);
+            var div_nm  = document.createElement('div');
+            div_nm.innerHTML="닉네임";
+            div_con.appendChild(div_nm);
+            var span = document.createElement('span');
+            att2.value = "context";
+            span.setAttributeNode(att2);
+            div_con.appendChild(span);
+            span.innerHTML = event.data || event;
+            //chatContainer.insertChildAfter(div, chatContainer.firstChild);
+            chatContainer.appendChild(div_con);
+            div_con.tabIndex = 0;
+            div_con.focus();
             document.getElementById('input-text-chat').focus();
+        }
+        function chatOnMsg(event) {
+            console.log(event.data.type);
+            if(event.data.type == "chat") {
+                var att1 = document.createAttribute("class");// Create a "class" attribute
+                var att2 = document.createAttribute("class");// Create a "class" attribute
+                var div_con = document.createElement('div');
+                att1.value = "con_div";
+                div_con.setAttributeNode(att1);
+                var div_nm = document.createElement('div');
+                div_nm.innerHTML = "닉네임";
+                div_con.appendChild(div_nm);
+                var span = document.createElement('span');
+                att2.value = "context";
+                span.setAttributeNode(att2);
+                div_con.appendChild(span);
+                span.innerHTML = event.data.content || event;
+                //chatContainer.insertChildAfter(div, chatContainer.firstChild);
+                chatContainer.appendChild(div_con);
+                div_con.tabIndex = 0;
+                div_con.focus();
+                document.getElementById('input-text-chat').focus();
+            }
+
+            if(event.data.type=="price"){
+
+                $('#highPrice').text(event.data.content);
+            }
         }
         var onMessageCallbacks = {};
         socket.on('message', function(data) {
             if (data.sender == connection.userid) return;
             if (onMessageCallbacks[data.channel]) {
+                console.log("채널 확인"+data.channel);
                 onMessageCallbacks[data.channel](data.message);
             };
         });
@@ -100,6 +166,7 @@ html(lang='en')
                 if (config.onopen) setTimeout(config.onopen, 1000);
                 return {
                     send: function(message) {
+
                         socket.emit('message', {
                             sender: connection.userid,
                             channel: channel,
@@ -151,7 +218,7 @@ html(lang='en')
         // if broadcast is absent, simply create it. i.e. "start-broadcasting" event should be fired.
         /*document.getElementById('open-or-join').onclick = function() {
          var broadcastid = document.getElementById('broadcast-id').value;
-         if (broadcastid.replace(/^\\\\\s+|\s+$/g, '').length <= 0) {
+         if (broadcastid.replace(/^\\\\\\s+|\s+$/g, '').length <= 0) {
          alert('Please enter broadcast-id');
          document.getElementById('broadcast-id').focus();
          return;
@@ -173,7 +240,7 @@ html(lang='en')
          */
         var broadcastid = document.getElementById('broadcast-id').value;
         var start = function() {
-            if (broadcastid.replace(/^\\\\\s+|\s+$/g, '').length <= 0) {
+            if (broadcastid.replace(/^\\\\\\s+|\s+$/g, '').length <= 0) {
                 alert('Please enter broadcast-id');
                 document.getElementById('broadcast-id').focus();
                 return;
@@ -192,7 +259,9 @@ html(lang='en')
                 typeOfStreams: connection.session
             });
         };
-        start();
+        window.onload = function () {
+            start();
+        }
         // this event is emitted when a broadcast is already created.
         socket.on('join-broadcaster', function(broadcaster, typeOfStreams) {
             connection.session = typeOfStreams;
@@ -232,3 +301,25 @@ html(lang='en')
             // Firefox is weird!
             document.getElementById('open-or-join').disabled = false;
         };
+        //입찰하기 버튼 클릭 시
+        document.getElementById('bidding-button').onclick=function () {
+            var price = document.getElementById('price').value;
+            socket.emit("bid",{broadcastid : broadcastid,price:price });
+            $('#bidModal').modal('hide')
+        };
+
+        socket.on("answer",function (data) {
+            if(data=="ok") {
+                var price = document.getElementById('price').value;
+                chatConnection.send({type: "price", content: price});
+                changePrice(price);
+            }else{
+                alert("가격이 작습니다.");
+            }
+        });
+
+        function changePrice(data){
+
+            $('#highPrice').text(data);
+
+        }
