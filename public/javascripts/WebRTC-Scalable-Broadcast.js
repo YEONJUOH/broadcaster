@@ -45,7 +45,7 @@ function WebRTC_Scalable_Broadcast(app) {
 
             var firstAvailableBroadcaster = getFirstAvailableBraodcater(user);
             if (firstAvailableBroadcaster) {
-                console.log("첫째 available");
+
                 listOfBroadcasts[user.broadcastid].broadcasters[firstAvailableBroadcaster.userid].numberOfViewers++;
                 socket.emit('join-broadcaster', firstAvailableBroadcaster, listOfBroadcasts[user.broadcastid].typeOfStreams);
 
@@ -83,8 +83,6 @@ function WebRTC_Scalable_Broadcast(app) {
                 socket.emit('answer',"ok");
 
             }
-
-
 
         })
 

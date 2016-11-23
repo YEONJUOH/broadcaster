@@ -21,6 +21,25 @@ html(lang='en')
                 margin-left: 5px;
                 font-size :10px;
             }
+
+            ul {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+                padding-left:10px;
+                height: 100%;
+            }
+
+            li {
+                margin: 0 0 0 0;
+                margin-right:7px;
+                padding: 0 0 0 0;
+                border: 0;
+                width:32%;
+                height: 100%;
+                float: left;
+            }
+
         link(rel='stylesheet', type='text/css', href='/stylesheets/bootstrap.min.css')
         script(src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js')
         script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js')
@@ -44,6 +63,18 @@ html(lang='en')
                             span 상품명
                             span 최저 입찰가
                         input#broadcast-id(type='hidden', placeholder='broadcast-id', value='#{key}')
+                     div(style='width:100%;margin-right:0px;margin-top:10px;padding:5px;float:left;height:200px;background-color:#ffffff')
+                         h3 맞춤 추천
+                         ul
+                             li
+                               img(src="/images/video.png" style='width:100%;height:50%')
+                               div(style="text-align:center") 방송1
+                             li
+                               img(src="/images/video.png" style='width:100%;height:50%')
+                               div(style="text-align:center") 방송2
+                             li
+                               img(src="/images/video.png" style='width:100%;height:50%')
+                               div(style="text-align:center") 방송3
                 div(style='width:30%;height100%;float:left;')
                     div(style='width:95%;height:600px;margin:0 auto;background:#ffffff;padding-top:5px;')
                         h4(style='width:95%;margin:0 auto;background:#666666;color:#ffffff;text-align:center;padding:4px;') 입찰 희망
