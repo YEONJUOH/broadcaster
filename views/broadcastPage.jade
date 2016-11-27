@@ -58,11 +58,12 @@ html(lang='en')
                 div(style='width:70%;margin-right:0px;float:left')
                     #videos-container(style='width:100%;margin-right:0px')
                     div(style='background:#ffffff;padding:5px;')
-                        h3 방송제목
+                        h3 #{broadcast.b_name}
                         div
-                            span 상품명
-                            span 최저 입찰가
-                        input#broadcast-id(type='hidden', placeholder='broadcast-id', value='#{key}')
+                            span #{broadcast.product_nm}
+                            span(style="padding-left:8px;") #{broadcast.low_price}
+                        input#broadcast-id(type='hidden', placeholder='broadcast-id', value='#{broadcast.b_id}')
+                        input#m_id(type='hidden', placeholder='broadcast-id', value='#{member.m_id}')
                      div(style='width:100%;margin-right:0px;margin-top:10px;padding:5px;float:left;height:200px;background-color:#ffffff')
                          h3 맞춤 추천
                          ul
@@ -115,16 +116,18 @@ html(lang='en')
             OfferToReceiveVideo: false
         };
         chatConnection.onmessage = chatOnMsg;
+        var m_id = document.getElementById('m_id').value;
         document.getElementById('input-text-chat').onkeyup = function(e) {
             if (e.keyCode != 13) return;
             // removing trailing/leading whitespace
             this.value = this.value.replace(/^\\\s+|\s+$/g, '');
             if (!this.value.length) return;
-            chatConnection.send({type:"chat",content : this.value});
+            chatConnection.send({type:"chat",content : this.value,sender:m_id});
             appendDIV(this.value);
             this.value = '';
         };
         var chatContainer = document.querySelector('.chat-output');
+
         function appendDIV(event) {
             var att1 = document.createAttribute("class");// Create a "class" attribute
             var att2 = document.createAttribute("class");// Create a "class" attribute
@@ -132,7 +135,7 @@ html(lang='en')
             att1.value ="con_div";
             div_con.setAttributeNode(att1);
             var div_nm  = document.createElement('div');
-            div_nm.innerHTML="닉네임";
+            div_nm.innerHTML=m_id;
             div_con.appendChild(div_nm);
             var span = document.createElement('span');
             att2.value = "context";
@@ -154,7 +157,7 @@ html(lang='en')
                 att1.value = "con_div";
                 div_con.setAttributeNode(att1);
                 var div_nm = document.createElement('div');
-                div_nm.innerHTML = "닉네임";
+                div_nm.innerHTML = event.data.sender;
                 div_con.appendChild(div_nm);
                 var span = document.createElement('span');
                 att2.value = "context";
@@ -170,7 +173,7 @@ html(lang='en')
 
             if(event.data.type=="price"){
 
-                $('#highPrice').text(event.data.content);
+                $('#highPrice').text(event.data.m_id+"님 "+ event.data.content+"원" );
             }
         }
         var onMessageCallbacks = {};
@@ -270,7 +273,9 @@ html(lang='en')
          };
          */
         var broadcastid = document.getElementById('broadcast-id').value;
+
         var start = function() {
+
             if (broadcastid.replace(/^\\\\\\s+|\s+$/g, '').length <= 0) {
                 alert('Please enter broadcast-id');
                 document.getElementById('broadcast-id').focus();
@@ -335,14 +340,14 @@ html(lang='en')
         //입찰하기 버튼 클릭 시
         document.getElementById('bidding-button').onclick=function () {
             var price = document.getElementById('price').value;
-            socket.emit("bid",{broadcastid : broadcastid,price:price });
+            socket.emit("bid",{broadcastid : broadcastid,price:price});
             $('#bidModal').modal('hide')
         };
 
         socket.on("answer",function (data) {
             if(data=="ok") {
                 var price = document.getElementById('price').value;
-                chatConnection.send({type: "price", content: price});
+                chatConnection.send({type: "price", content: price,m_id:m_id});
                 changePrice(price);
             }else{
                 alert("가격이 작습니다.");
@@ -351,6 +356,6 @@ html(lang='en')
 
         function changePrice(data){
 
-            $('#highPrice').text(data);
+            $('#highPrice').text(m_id+"님 "+  data+"원");
 
         }
