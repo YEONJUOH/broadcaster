@@ -65,7 +65,7 @@ function WebRTC_Scalable_Broadcast(app) {
             socket.broadcast.emit('message', message);
         });
 
-        //
+        //입찰가 받기
         socket.on("bid",function(data){
 
 
@@ -84,9 +84,7 @@ function WebRTC_Scalable_Broadcast(app) {
 
             }
 
-        })
-
-
+        });
 
         socket.on('disconnect', function() {
             if (!currentUser) return;

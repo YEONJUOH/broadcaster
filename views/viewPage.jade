@@ -7,15 +7,16 @@ html(lang='en')
             video {
                 width:100%;
             }
-            .contrast{
+
+            .contrast {
                 filter: contrast(200%);
             }
 
-            .origin{
+            .origin {
 
             }
 
-            .bright{
+            .bright {
                 filter: brightness(200%);
             }
 
@@ -50,28 +51,6 @@ html(lang='en')
                 width:32%;
                 height: 100%;
                 float: left;
-            }
-
-            #eft_menu{
-
-                width:60px;
-                position:fixed;
-                top:70px;
-                background-color: #808080;
-                border-radius: 5px;
-
-            }
-
-            .menu_con{
-                height :60px;
-                background-color: #b3b3b3;
-                color : #000000;
-                font-size:1.2em;
-                padding-top:14px;
-            }
-
-            .sel_con{
-                background-color: #808080;
             }
 
         link(rel='stylesheet', type='text/css', href='/stylesheets/bootstrap.min.css')
@@ -111,7 +90,7 @@ html(lang='en')
                                 img(src="/images/video.png" style='width:100%;height:50%')
                                 div(style="text-align:center") 방송3
                 div(style='width:30%;height100%;float:left;')
-                    div(style='width:95%;height:580px;margin:0 auto;background:#ffffff;padding-top:5px;')
+                    div(style='width:95%;height:600px;margin:0 auto;background:#ffffff;padding-top:5px;')
                         h4(style='width:95%;margin:0 auto;background:#666666;color:#ffffff;text-align:center;padding:4px;') 입찰 희망
                         div#highPrice(style='text-align:center;width:95%;margin:10px auto;border-bottom:1px solid') 입찰 희망 내역이 없습니다.
                         .chat-output(style='width:95%;margin:10px auto;height:450px;background:#d9d9d9')
@@ -119,34 +98,23 @@ html(lang='en')
                             button(style='float:right') 입력
                             .stretcher(style='overflow:hidden')
                                 input#input-text-chat(type='text', style='width:100%')
-        div#eft_menu
-            div(style="color:white;text-align:center;border-bottom:solid 1px white;") 메뉴
-            div#contrast(style="text-align:center;border-bottom:solid 1px white;",class="menu_con") 선명
-            div#orgin(style="text-align:center;border-bottom:solid 1px white;", class="menu_con") 원본
-            div#bright(style="text-align:center;", class="menu_con") 밝음
-
+                        div(style='width:95%;margin:5px auto;')
+                            button(type='button', data-toggle='modal', data-target='#bidModal', style='width:100%;') 입찰하기
+        // Modal
+        #bidModal.modal.fade(role='dialog')
+            .modal-dialog
+                // Modal content
+                .modal-content
+                    .modal-header
+                        button.close(type='button', data-dismiss='modal') ×
+                        h4.modal-title 입찰 하기
+                    .modal-body
+                        input#price(type='text',class="form-control" , style='width:50%;margin-left:25%')
+                    .modal-footer(style="text-align:center")
+                        button#bidding-button(type='button',class="btn btn-default" ,data-dismiss='modal') 입찰하기
     script(src='/socket.io/socket.io.js')
     script(src='/javascripts/RTCMultiConnection.js')
     script.
-
-        $('.menu_con').click(
-                function () {
-
-
-                    var classNm = $('video').attr('class');
-                    $('video').removeClass(classNm);
-                    $('#' + classNm).removeClass('sel_con');
-
-
-                    $(this).addClass('sel_con');
-                    var idNm = $(this).attr('id');
-
-                    $('video').addClass(idNm);
-                    //socket.emit("effect", {broadcastId: broadcastid, classNm: "sepia"});
-                    chatConnection.send({type: "effect", classNm: idNm, sender: m_id});
-                }
-        )
-
         var socket = io.connect();
         // using single socket for RTCMultiConnection signaling
         //script for chat connection
@@ -221,17 +189,14 @@ html(lang='en')
                 $('#highPrice').text(event.data.m_id+"님 "+ event.data.content+"원" );
             }
 
-            if(event.data.type =='effect'){
+            if (event.data.type == 'effect') {
 
                 var classNm = $('video').attr('class');
                 $('video').removeClass(classNm);
 
                 $('video').addClass(event.data.classNm);
 
-
-
             }
-
 
         }
         var onMessageCallbacks = {};
@@ -353,7 +318,6 @@ html(lang='en')
                 typeOfStreams: connection.session
             });
         };
-
         window.onload = function () {
             start();
         }
@@ -365,10 +329,7 @@ html(lang='en')
                 OfferToReceiveVideo: !!connection.session.video,
                 OfferToReceiveAudio: !!connection.session.audio
             };
-
-
             chatConnection.join(broadcastid+"chat");
-            console.log(broadcastid+"chat" + ":joined");
             connection.join({
                 sessionid: broadcaster.userid,
                 userid: broadcaster.userid,
@@ -377,7 +338,6 @@ html(lang='en')
             });
         });
         // this event is emitted when a broadcast is absent.
-
         socket.on('start-broadcasting', function(typeOfStreams) {
             // host i.e. sender should always use this!
             connection.sdpConstraints.mandatory = {
@@ -386,7 +346,6 @@ html(lang='en')
             };
             //chat room open
             chatConnection.open(broadcastid +"chat");
-            console.log(broadcastid+"chat" + ":opened");
             connection.session = typeOfStreams;
             connection.open({
                 dontTransmit: true
@@ -401,10 +360,25 @@ html(lang='en')
             // Firefox is weird!
             document.getElementById('open-or-join').disabled = false;
         };
+        //입찰하기 버튼 클릭 시
+        document.getElementById('bidding-button').onclick=function () {
+            var price = document.getElementById('price').value;
+            socket.emit("bid",{broadcastid : broadcastid,price:price});
+            $('#bidModal').modal('hide')
+        };
+
+        socket.on("answer",function (data) {
+            if(data=="ok") {
+                var price = document.getElementById('price').value;
+                chatConnection.send({type: "price", content: price,m_id:m_id});
+                changePrice(price);
+            }else{
+                alert("가격이 작습니다.");
+            }
+        });
 
         function changePrice(data){
 
             $('#highPrice').text(m_id+"님 "+  data+"원");
 
         }
-

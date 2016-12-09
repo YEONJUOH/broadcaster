@@ -5,10 +5,11 @@ html(lang='en')
         title Title
         script(src='https://code.jquery.com/jquery-1.10.2.js')
     body
-        form(action='http://35.162.132.169:3000/broadcast', method='POST')
-            input#room_num1(type='text', name='b_id', placeholder='방 아이디')
+        form(action='http://localhost:3000/broadcast', method='POST')
+            input(type='text', name='b_id', placeholder='방 아이디')
             input(type="text", name='m_id' , placeholder='멤버 아이디')
             button#broadcast2(type='submit') 방송하기
-        form(action='http://localhost:3000/join', method='POST')
-            input#room_num2(type='text', name='b_key')
+        form(action='http://localhost:3000/view', method='POST')
+            input(type='text', name='b_id', placeholder='방 아이디')
+            input(type="text", name='m_id' , placeholder='멤버 아이디')
             button#broadcast3(type='submit') 참여하기
